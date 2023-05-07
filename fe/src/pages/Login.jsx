@@ -68,6 +68,7 @@ const Login = () => {
                             label="Remember me"
                         />
                         <Button
+                            href="/budget"          //FOR TESTING
                             type="submit"
                             fullWidth
                             variant="contained"
