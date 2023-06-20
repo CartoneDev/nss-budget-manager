@@ -8,9 +8,14 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import { createTheme, ThemeProvider, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import Radio from '@mui/material/Radio';
+import FormControl from '@mui/material/FormControl';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import TextField from '@mui/material/TextField';
+import { createTheme, ThemeProvider } from "@mui/material";
 import Slide from '@mui/material/Slide';
-import './Wallet.css';
+import './styles/Wallet.css';
 
 const theme = createTheme();
 
@@ -38,6 +43,11 @@ const reducer = (state, action) => {
 const Wallet = () => {
     const [state, dispatch] = useReducer(reducer, initialState);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const [currencyChange, setCurrencyChange] = useState('CZK');
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [goals, setGoals] = useState([]);
+    const [goalName, setGoalName] = useState('');
+    const [goalAmount, setGoalAmount] = useState('');
     const Transition = React.forwardRef(function Transition(props, ref) {
         return <Slide direction="up" ref={ref} {...props} />;
     });
@@ -52,11 +62,11 @@ const Wallet = () => {
                     if (data && data.wallet_id) {
                         dispatch({ type: 'SET_WALLET', payload: data });
                     } else {
-                        console.log('Wallet neexistuje v databázi.');
+                        console.log('Wallet does not exist in the database.');
                     }
                 })
                 .catch((error) => {
-                    console.log('Chyba při načítání dat z databáze:', error);
+                    console.log('Error loading data from the database:', error);
                 });
         }
     }, []);
@@ -68,14 +78,15 @@ const Wallet = () => {
                 const data = await response.json();
                 return data;
             } else {
-                throw new Error('Neplatná odpověď ze serveru');
+                throw new Error('Invalid response from the server.');
             }
         } catch (error) {
-            throw new Error('Chyba při načítání dat z API: ' + error.message);
+            throw new Error('Error loading data from the API: ' + error.message);
         }
     };
 
     const handleCurrencyChange = async (event) => {
+        setCurrencyChange(event.target.value);
         const newCurrency = event.target.value;
         try {
             const budgetLimit = await getBudgetLimitForCurrency(newCurrency);
@@ -89,7 +100,7 @@ const Wallet = () => {
                 },
             });
         } catch (error) {
-            console.log('Chyba při změně měny:', error);
+            console.log('Error while changing the currency:', error);
         }
     };
 
@@ -99,7 +110,7 @@ const Wallet = () => {
             const data = await response.json();
             return data.budget_limit;
         } catch (error) {
-            throw new Error('Chyba při získávání rozpočtového limitu:', error);
+            throw new Error('Error while retrieving the budget limit:', error);
         }
     };
 
@@ -109,17 +120,42 @@ const Wallet = () => {
             const data = await response.json();
             return data.amount;
         } catch (error) {
-            throw new Error('Chyba při získávání celkového příjmu:', error);
+            throw new Error('Error while retrieving the total income:', error);
         }
     };
 
     const handleExport = () => {
         // Implementace exportu dat
-        console.log('Export dat:', state);
+        console.log('Data export:', state);
     };
 
     const handleCloseDialog = () => {
         setIsInitialLoad(false);
+    };
+
+    const handleCloseDialogGoals = () => {
+        setIsDialogOpen(false);
+    };
+
+    const handleOpenDialog = () => {
+        setIsDialogOpen(true);
+    };
+
+    const handleAddGoal = () => {
+        const newGoal = {
+            name: goalName,
+            amount: goalAmount
+        };
+        setGoals([...goals, newGoal]);
+        setGoalName('');
+        setGoalAmount('');
+        setIsDialogOpen(false);
+    };
+
+    const handleRemoveGoal = (index) => {
+        const updatedGoals = [...goals];
+        updatedGoals.splice(index, 1);
+        setGoals(updatedGoals);
     };
 
     return (
@@ -128,10 +164,11 @@ const Wallet = () => {
             <Container maxWidth="sm">
                 <Box
                     sx={{
-                        marginTop: 8,
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
+                        textAlign: 'center',
+                        padding: '0 16px',
                     }}
                 >
                     {isInitialLoad && !state.wallet_id ? (
@@ -140,48 +177,164 @@ const Wallet = () => {
                             TransitionComponent={Transition}
                             keepMounted
                         >
-                            <DialogTitle>Wallet neexistuje</DialogTitle>
+                            <DialogTitle>Wallet does not exist</DialogTitle>
                             <DialogContent>
-                                <Typography>Wallet nebyl nalezen v databázi.</Typography>
+                                <Typography>Wallet was not found in the database</Typography>
                             </DialogContent>
                             <DialogActions>
-                                <Button onClick={handleCloseDialog} color="primary" variant="contained">Zavřít</Button>
+                                <Button onClick={handleCloseDialog} color="primary" variant="contained">Close</Button>
                             </DialogActions>
                         </Dialog>
                     ) : (
                         <div>
-                            <Typography component="h1" variant="h5">
-                                {state.name}
-                            </Typography>
-                            <Typography component="p">
-                                <strong>Budget Limit:</strong> {state.budget_limit} {state.currency}
-                            </Typography>
-                            <Typography component="p">
-                                <strong>Celkový příjem:</strong> {state.amount} {state.currency}
-                            </Typography>
-
-                            <FormControl sx={{ mt: 2 }}>
-                                <InputLabel id="currency-label">Měna</InputLabel>
-                                <Select
-                                    labelId="currency-label"
-                                    id="currency-select"
-                                    value={state.currency}
-                                    onChange={handleCurrencyChange}
-                                >
-                                    <MenuItem value="USD">USD</MenuItem>
-                                    <MenuItem value="EUR">EUR</MenuItem>
-                                    <MenuItem value="CZK">CZK</MenuItem>
-                                </Select>
-                            </FormControl>
-
-                            <Button
-                                sx={{ mt: 2 }}
-                                onClick={handleExport}
-                                variant="contained"
-                                color="primary"
+                            <Box
+                                sx={{
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '24px',
+                                    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+                                    padding: '16px',
+                                    maxWidth: '400px',
+                                    margin: '0 auto',
+                                }}
                             >
-                                Exportovat
-                            </Button>
+                                <Typography variant="h6">Selected Currency: {currencyChange}</Typography>
+                                <FormControl component="fieldset" sx={{ mt: 2, margin: 5, flexDirection: 'row' }}>
+                                    <RadioGroup row value={currencyChange} onChange={handleCurrencyChange}>
+                                        <FormControlLabel
+                                            control={<Radio />}
+                                            value="CZK"
+                                            name="CZK"
+                                            inputProps={{ 'aria-label': 'CZK' }}
+                                            color="secondary"
+                                            label="CZK"
+                                            labelPlacement="top"
+                                            sx={{
+                                                '& .MuiSvgIcon-root': {
+                                                    fontSize: 28,
+                                                },
+                                            }}
+                                        />
+                                        <FormControlLabel
+                                            control={<Radio />}
+                                            value="EUR"
+                                            name="EUR"
+                                            inputProps={{ 'aria-label': 'EUR' }}
+                                            color="secondary"
+                                            label="EUR"
+                                            labelPlacement="top"
+                                            sx={{
+                                                '& .MuiSvgIcon-root': {
+                                                    fontSize: 28,
+                                                },
+                                            }}
+                                        />
+                                        <FormControlLabel
+                                            control={<Radio />}
+                                            value="USD"
+                                            name="USD"
+                                            inputProps={{ 'aria-label': 'USD' }}
+                                            color="secondary"
+                                            label="USD"
+                                            labelPlacement="top"
+                                            sx={{
+                                                '& .MuiSvgIcon-root': {
+                                                    fontSize: 28,
+                                                },
+                                            }}
+                                        />
+                                    </RadioGroup>
+                                </FormControl>
+                                <Box
+                                    sx={{
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '24px',
+                                        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+                                        padding: '16px',
+                                        maxWidth: '400px',
+                                        margin: '0 auto',
+                                    }}
+                                >
+                                    <Typography component="h1" variant="h5">
+                                        <strong>Wallet name:</strong> {state.name}
+                                    </Typography>
+                                    <Typography component="p">
+                                        <strong>Budget Limit:</strong> {state.budget_limit} {state.currency}
+                                    </Typography>
+                                    <Typography component="p">
+                                        <strong>Amount:</strong> {state.amount} {state.currency}
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            <Box
+                                sx={{
+                                    paddingTop: 50,
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    alignItems: 'flex-end',
+                                    mt: 'auto',
+                                }}
+                            >
+                                <Button
+                                    onClick={handleExport}
+                                    variant="contained"
+                                    color="primary"
+                                >
+                                    Exportovat
+                                </Button>
+                                <Button variant="contained" color="primary" onClick={handleOpenDialog}>
+                                    Add goals
+                                </Button>
+                                { goals.map((goal, index) => (
+                                    <div key={index}>
+                                        <p>
+                                            <strong>Name:</strong> {goal.name}
+                                        </p>
+                                        <p>
+                                            <strong>Amount:</strong> {goal.amount}
+                                        </p>
+                                        <Button variant="contained" color="secondary" onClick={() => handleRemoveGoal(index)}>
+                                            Remove goals
+                                        </Button>
+                                    </div>
+                                ))}
+                                <Dialog open={isDialogOpen} onClose={handleCloseDialogGoals}>
+                                    <DialogTitle>Add goals</DialogTitle>
+                                    <DialogContent>
+                                        <TextField
+                                            autoFocus
+                                            margin="dense"
+                                            id="goalName"
+                                            label="Name"
+                                            type="text"
+                                            fullWidth
+                                            value={goalName}
+                                            onChange={(e) => setGoalName(e.target.value)}
+                                        />
+                                        <TextField
+                                            margin="dense"
+                                            id="goalAmount"
+                                            label="Amount"
+                                            type="number"
+                                            fullWidth
+                                            value={goalAmount}
+                                            onChange={(e) => setGoalAmount(e.target.value)}
+                                        />
+                                    </DialogContent>
+                                    <DialogActions>
+                                        <Button onClick={handleCloseDialogGoals} color="primary">
+                                            Cansel
+                                        </Button>
+                                        <Button onClick={handleAddGoal} color="primary">
+                                            Add
+                                        </Button>
+                                    </DialogActions>
+                                </Dialog>
+                            </Box>
                         </div>
                     )}
                 </Box>
