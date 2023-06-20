@@ -105,7 +105,10 @@ const MainScreen = () => {
                         >
                             {content}
                         </Typography>
-                        <IconButton color="inherit">
+                        <IconButton
+                            color="inherit"
+                            href="/"
+                        >
                             <ExitToAppIcon/>
                         </IconButton>
                     </Toolbar>

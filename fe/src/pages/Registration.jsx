@@ -18,8 +18,6 @@ const Registration = () => {
         e.preventDefault();
         const data = new FormData(e.target.currentTarget);
         console.log({
-            firstName: data.get('firstName'),
-            lastName: data.get('lastName'),
             username: data.get('username'),
             email: data.get('email'),
             password: data.get('password'),
@@ -46,27 +44,6 @@ const Registration = () => {
                     </Typography>
                     <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
                         <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    autoComplete="given-name"
-                                    name="firstName"
-                                    required
-                                    fullWidth
-                                    id="firstName"
-                                    label="First Name"
-                                    autoFocus
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    required
-                                    fullWidth
-                                    id="lastName"
-                                    label="Last Name"
-                                    name="lastName"
-                                    autoComplete="family-name"
-                                />
-                            </Grid>
                             <Grid item xs={12}>
                                 <TextField
                                     required
@@ -114,6 +91,7 @@ const Registration = () => {
                             fullWidth
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
+                            href="/"
                         >
                             Register
                         </Button>
