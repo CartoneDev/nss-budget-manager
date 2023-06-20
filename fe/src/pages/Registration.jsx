@@ -10,19 +10,32 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Link from "@mui/material/Link";
 import {createTheme, ThemeProvider} from "@mui/material";
+import {axiosApi} from "../api/axiosApi";
 
 const theme = createTheme();
 const Registration = () => {
     document.title = 'Registration';
     const handleSubmit = (e) => {
         e.preventDefault();
-        const data = new FormData(e.target.currentTarget);
+        const data = new FormData(e.target);
         console.log({
             username: data.get('username'),
             email: data.get('email'),
             password: data.get('password'),
             confirm: data.get('confirm-password')
         });
+        if (!(data.get('username') && data.get('email') && data.get('password') && data.get('confirm-password'))) {
+            return
+        }
+        const user = {
+            username: data.get('username'),
+            email: data.get('email'),
+            password: data.get('password')
+        }
+
+        axiosApi.signup(user).then(
+            window.location.reload(true)
+        );
     };
     return (
         <ThemeProvider theme={theme}>
@@ -91,7 +104,6 @@ const Registration = () => {
                             fullWidth
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
-                            href="/"
                         >
                             Register
                         </Button>
