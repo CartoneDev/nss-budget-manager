@@ -48,6 +48,7 @@ const Wallet = () => {
     const [goals, setGoals] = useState([]);
     const [goalName, setGoalName] = useState('');
     const [goalAmount, setGoalAmount] = useState('');
+    const [addedAmount, setAddedAmount] = useState('');
     const Transition = React.forwardRef(function Transition(props, ref) {
         return <Slide direction="up" ref={ref} {...props} />;
     });
@@ -103,6 +104,18 @@ const Wallet = () => {
             console.log('Error while changing the currency:', error);
         }
     };
+
+    const handleAddMoney = () => {
+        const amountToAdd = parseFloat(addedAmount);
+        if (!isNaN(amountToAdd) && amountToAdd > 0) {
+            dispatch({
+                type: 'SET_WALLET',
+                payload: { ...state, amount: state.amount + amountToAdd },
+            });
+            setAddedAmount('');
+        }
+    };
+
 
     const getBudgetLimitForCurrency = async (currency) => {
         try {
@@ -269,6 +282,22 @@ const Wallet = () => {
                                     </Typography>
                                 </Box>
                             </Box>
+                            <TextField
+                                margin="dense"
+                                id="addedAmount"
+                                label="Amount to Add"
+                                type="number"
+                                fullWidth
+                                value={addedAmount}
+                                onChange={(e) => setAddedAmount(e.target.value)}
+                            />
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleAddMoney}
+                            >
+                                Add Money
+                            </Button>
 
                             <Box
                                 sx={{

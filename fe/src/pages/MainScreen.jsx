@@ -24,6 +24,8 @@ import Wallet from "./Wallet";
 import Transactions from "./Transactions";
 import {ListItem} from "@mui/material";
 import Container from "@mui/material/Container";
+import Statistics from "./Statistics";
+import PieChartIcon from '@mui/icons-material/PieChart';
 
 const drawerWidth = 240;
 const mdTheme = createTheme();
@@ -164,6 +166,18 @@ const MainScreen = () => {
                                 <ListItemText primary="Transactions"/>
                             </ListItemButton>
                         </ListItem>
+                        <ListItem
+                            disablePadding
+                            sx={{display: 'block'}}
+                            onClick={() => setContent("Statistics")}
+                        >
+                            <ListItemButton>
+                                <ListItemIcon>
+                                    <PieChartIcon/>
+                                </ListItemIcon>
+                                <ListItemText primary="Statistics"/>
+                            </ListItemButton>
+                        </ListItem>
                         <Divider sx={{my: 1}}/>
                     </List>
                 </Drawer>
@@ -184,6 +198,7 @@ const MainScreen = () => {
                         {content === "Dashboard" && <Dashboard/>}
                         {content === "Wallet" && <Wallet/>}
                         {content === "Transactions" && <Transactions/>}
+                        {content === "Statistics" && <Statistics/>}
                     </Container>
                 </Box>
             </Box>
