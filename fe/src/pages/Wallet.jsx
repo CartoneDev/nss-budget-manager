@@ -109,8 +109,8 @@ const Wallet = () => {
         const amountToAdd = parseFloat(addedAmount);
         if (!isNaN(amountToAdd) && amountToAdd > 0) {
             dispatch({
-                type: 'SET_WALLET',
-                payload: { ...state, amount: state.amount + amountToAdd },
+                type: 'SET_CURRENCY',
+                payload: {amount: amountToAdd },
             });
             setAddedAmount('');
         }
