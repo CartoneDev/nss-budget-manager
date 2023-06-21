@@ -12,17 +12,25 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Link from "@mui/material/Link";
 import {createTheme, ThemeProvider} from "@mui/material";
+import {axiosApi} from "../api/axiosApi";
 
 const theme = createTheme();
 const Login = () => {
     document.title = 'Login';
     const handleSubmit = (e) => {
         e.preventDefault();
-        const data = new FormData(e.currentTarget);
+        const data = new FormData(e.target);
         console.log({
-            username: data.get('username'),
+            email: data.get('email'),
             password: data.get('password')
         });
+        const user = {
+            email: data.get('email'),
+            password: data.get('password')
+        }
+        axiosApi.login(user).then(() => {
+            console.log("DONE")
+        })
     };
     return (
         <ThemeProvider theme={theme}>
@@ -47,10 +55,10 @@ const Login = () => {
                             margin="normal"
                             required
                             fullWidth
-                            id="username"
-                            label="Username"
-                            name="username"
-                            autoComplete="username"
+                            id="email"
+                            label="Email"
+                            name="email"
+                            autoComplete="email"
                             autoFocus
                         />
                         <TextField
@@ -68,7 +76,7 @@ const Login = () => {
                             label="Remember me"
                         />
                         <Button
-                            href="/budget"          //FOR TESTING
+                            href="/budget"
                             type="submit"
                             fullWidth
                             variant="contained"
