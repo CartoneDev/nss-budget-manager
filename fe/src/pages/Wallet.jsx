@@ -16,32 +16,18 @@ import TextField from '@mui/material/TextField';
 import { createTheme, ThemeProvider } from "@mui/material";
 import Slide from '@mui/material/Slide';
 import './styles/Wallet.css';
+import {axiosApi} from "../api/axiosApi";
 
 const theme = createTheme();
 
-const initialState = {
-    wallet_id: null,
-    amount: 0,
-    client: '',
-    name: '',
-    budget_limit: null,
-    currency: '',
-    expenses: [],
-};
-
-const reducer = (state, action) => {
-    switch (action.type) {
-        case 'SET_WALLET':
-            return { ...state, ...action.payload };
-        case 'SET_CURRENCY':
-            return { ...state, currency: action.payload.currency, budget_limit: action.payload.budget_limit, amount: action.payload.amount };
-        default:
-            return state;
-    }
-};
-
 const Wallet = () => {
-    const [state, dispatch] = useReducer(reducer, initialState);
+    const [state, setState] = useState({});
+    useEffect(async () => {
+        const response = await axiosApi.wallet();
+        console.log(response.data);
+        setState(response.data);
+    }, []);
+
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [currencyChange, setCurrencyChange] = useState('CZK');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -52,53 +38,20 @@ const Wallet = () => {
         return <Slide direction="up" ref={ref} {...props} />;
     });
 
-    useEffect(() => {
-        const storedState = localStorage.getItem('walletState');
-        if (storedState) {
-            dispatch({ type: 'SET_WALLET', payload: JSON.parse(storedState) });
-        } else {
-            fetchWalletData()
-                .then((data) => {
-                    if (data && data.wallet_id) {
-                        dispatch({ type: 'SET_WALLET', payload: data });
-                    } else {
-                        console.log('Wallet does not exist in the database.');
-                    }
-                })
-                .catch((error) => {
-                    console.log('Error loading data from the database:', error);
-                });
-        }
-    }, []);
-
-    const fetchWalletData = async () => {
-        try {
-            const response = await fetch('/api/wallet');
-            if (response.ok) {
-                const data = await response.json();
-                return data;
-            } else {
-                throw new Error('Invalid response from the server.');
-            }
-        } catch (error) {
-            throw new Error('Error loading data from the API: ' + error.message);
-        }
-    };
-
     const handleCurrencyChange = async (event) => {
         setCurrencyChange(event.target.value);
         const newCurrency = event.target.value;
         try {
             const budgetLimit = await getBudgetLimitForCurrency(newCurrency);
             const amount = await getAmountForCurrency(newCurrency);
-            dispatch({
-                type: 'SET_CURRENCY',
-                payload: {
-                    currency: newCurrency,
-                    budget_limit: budgetLimit,
-                    amount: amount,
-                },
-            });
+            // dispatch({
+            //     type: 'SET_CURRENCY',
+            //     payload: {
+            //         currency: newCurrency,
+            //         budget_limit: budgetLimit,
+            //         amount: amount,
+            //     },
+            // });
         } catch (error) {
             console.log('Error while changing the currency:', error);
         }
@@ -171,7 +124,7 @@ const Wallet = () => {
                         padding: '0 16px',
                     }}
                 >
-                    {isInitialLoad && !state.wallet_id ? (
+                    {isInitialLoad && !state["walletId"] ? (
                         <Dialog
                             open={true}
                             TransitionComponent={Transition}
@@ -259,13 +212,13 @@ const Wallet = () => {
                                     }}
                                 >
                                     <Typography component="h1" variant="h5">
-                                        <strong>Wallet name:</strong> {state.name}
+                                        <strong>Wallet name:</strong> {state["name"]}
                                     </Typography>
                                     <Typography component="p">
-                                        <strong>Budget Limit:</strong> {state.budget_limit} {state.currency}
+                                        <strong>Budget Limit:</strong> {state["budgetLimit"]} {state["currency"]}
                                     </Typography>
                                     <Typography component="p">
-                                        <strong>Amount:</strong> {state.amount} {state.currency}
+                                        <strong>Amount:</strong> {state["amount"]} {state["currency"]}
                                     </Typography>
                                 </Box>
                             </Box>

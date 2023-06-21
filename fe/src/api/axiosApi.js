@@ -3,6 +3,8 @@ import {config} from "../Constants";
 
 export const axiosApi = {
     signup,
+    wallet,
+    login
 }
 
 const instance = axios.create({
@@ -12,6 +14,18 @@ const instance = axios.create({
 
 function signup(user) {
     return instance.post('/user/register', user, {
+        headers: {'Content-type': 'application/json'}
+    })
+}
+
+function wallet() {
+    return instance.get('/wallet/myWallet', {
+        headers: {'Authorization': 'no@no.no'}
+    })
+}
+
+function login(user) {
+    return instance.post('/user/authenticate', user, {
         headers: {'Content-type': 'application/json'}
     })
 }
