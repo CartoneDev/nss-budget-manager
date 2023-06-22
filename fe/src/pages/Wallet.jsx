@@ -17,15 +17,18 @@ import { createTheme, ThemeProvider } from "@mui/material";
 import Slide from '@mui/material/Slide';
 import './styles/Wallet.css';
 import {axiosApi} from "../api/axiosApi";
+import {get} from "axios";
 
 const theme = createTheme();
 
 const Wallet = () => {
     const [state, setState] = useState({});
-    useEffect(async () => {
-        const response = await axiosApi.wallet();
-        console.log(response.data);
-        setState(response.data);
+    useEffect(() => {
+        (async () => {
+            const response = await axiosApi.wallet();
+            console.log(response.data);
+            setState(response.data);
+        })();
     }, []);
 
     const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -39,55 +42,14 @@ const Wallet = () => {
         return <Slide direction="up" ref={ref} {...props} />;
     });
 
-    const handleCurrencyChange = async (event) => {
-        setCurrencyChange(event.target.value);
-        const newCurrency = event.target.value;
-        try {
-            const budgetLimit = await getBudgetLimitForCurrency(newCurrency);
-            const amount = await getAmountForCurrency(newCurrency);
-            // dispatch({
-            //     type: 'SET_CURRENCY',
-            //     payload: {
-            //         currency: newCurrency,
-            //         budget_limit: budgetLimit,
-            //         amount: amount,
-            //     },
-            // });
-        } catch (error) {
-            console.log('Error while changing the currency:', error);
-        }
-    };
-
     const handleAddMoney = () => {
         const amountToAdd = parseFloat(addedAmount);
+        console.log(amountToAdd);
         if (!isNaN(amountToAdd) && amountToAdd > 0) {
-            dispatch({
-                type: 'SET_CURRENCY',
-                payload: {amount: amountToAdd },
-            });
-            setAddedAmount('');
+            axiosApi.addMoney(amountToAdd);
         }
-    };
-
-
-    const getBudgetLimitForCurrency = async (currency) => {
-        try {
-            const response = await fetch(`API_URL/getBudgetLimit?currency=${currency}`);
-            const data = await response.json();
-            return data.budget_limit;
-        } catch (error) {
-            throw new Error('Error while retrieving the budget limit:', error);
-        }
-    };
-
-    const getAmountForCurrency = async (currency) => {
-        try {
-            const response = await fetch(`API_URL/getAmount?currency=${currency}`);
-            const data = await response.json();
-            return data.amount;
-        } catch (error) {
-            throw new Error('Error while retrieving the total income:', error);
-        }
+        setAddedAmount('');
+        window.location.reload();
     };
 
     const handleExport = () => {
@@ -108,11 +70,17 @@ const Wallet = () => {
     };
 
     const handleAddGoal = () => {
+        // const newGoal = {
+        //     name: goalName,
+        //     amount: goalAmount
+        // };
         const newGoal = {
-            name: goalName,
-            amount: goalAmount
-        };
-        setGoals([...goals, newGoal]);
+            "goal": {
+                "goalName": goalAmount
+            }
+        }
+        console.log(newGoal);
+        // setGoals([...goals, newGoal]);
         setGoalName('');
         setGoalAmount('');
         setIsDialogOpen(false);
@@ -167,7 +135,7 @@ const Wallet = () => {
                             >
                                 <Typography variant="h6">Selected Currency: {currencyChange}</Typography>
                                 <FormControl component="fieldset" sx={{ mt: 2, margin: 5, flexDirection: 'row' }}>
-                                    <RadioGroup row value={currencyChange} onChange={handleCurrencyChange}>
+                                    <RadioGroup row value={currencyChange}>
                                         <FormControlLabel
                                             control={<Radio />}
                                             value="CZK"
@@ -309,7 +277,7 @@ const Wallet = () => {
                                     </DialogContent>
                                     <DialogActions>
                                         <Button onClick={handleCloseDialogGoals} color="primary">
-                                            Cansel
+                                            Cancel
                                         </Button>
                                         <Button onClick={handleAddGoal} color="primary">
                                             Add

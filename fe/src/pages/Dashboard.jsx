@@ -10,114 +10,30 @@ import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
 import Table from "@mui/material/Table";
 import { createTheme, ThemeProvider } from "@mui/material";
+import {axiosApi} from "../api/axiosApi";
 
 const theme = createTheme();
 
-const initialState = {
-    wallet_id: null,
-    amount: 0,
-    client: '',
-    name: '',
-    budget_limit: null,
-    currency: '',
-    amountGoal: '',
-    nameGoal: '',
-};
-
-const reducer = (state, action) => {
-    switch (action.type) {
-        case 'SET_WALLET':
-            return { ...state, ...action.payload };
-        case 'SET_CURRENCY':
-            return { ...state, currency: action.payload.currency, budget_limit: action.payload.budget_limit, amount: action.payload.amount };
-        case 'SET_GOALS':
-            return { ...state, amountGoal: action.payload.amountGoal, NameGoal: action.payload.NameGoal };
-        default:
-            return state;
-    }
-};
-
 const Dashboard = () => {
-    const [state, dispatch] = useReducer(reducer, initialState);
+    const [state, setState] = useState({});
+    const [transactionData, setTransactionData] = useState([]);
+    const [newTransaction, setNewTransaction] = useState({});
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [currencyChange, setCurrencyChange] = useState('CZK');
     const [showGoals, setShowGoals] = useState(false); // New state variable for showing goals
     const [showTransactions, setShowTransactions] = useState(false);
 
-
     useEffect(() => {
-        const storedState = localStorage.getItem('walletState');
-        if (storedState) {
-            dispatch({ type: 'SET_WALLET', payload: JSON.parse(storedState) });
-            setIsInitialLoad(false); // Set initial load to false if data exists in localStorage
-        } else {
-            fetchWalletData()
-                .then((data) => {
-                    if (data && data.wallet_id) {
-                        dispatch({ type: 'SET_WALLET', payload: data });
-                    } else {
-                        console.log('Wallet does not exist in the database.');
-                    }
-                    setIsInitialLoad(false); // Set initial load to false after fetching data
-                })
-                .catch((error) => {
-                    console.log('Error loading data from the database:', error);
-                    setIsInitialLoad(false); // Set initial load to false if error occurs
-                });
-        }
+        (async () => {
+            const res = await axiosApi.getAllTrans();
+            const resWallet = await axiosApi.wallet();
+            console.log(res.data)
+            console.log(resWallet.data)
+            setState(resWallet.data);
+            setTransactionData([...res.data, newTransaction]);
+            setIsInitialLoad(false)
+        })();
     }, []);
-
-    const fetchWalletData = async () => {
-        try {
-            const response = await fetch('/api/wallet');
-            if (response.ok) {
-                return await response.json();
-            } else {
-                throw new Error('Invalid response from the server.');
-            }
-        } catch (error) {
-            throw new Error('Error loading data from the API: ' + error.message);
-        }
-    };
-
-    const handleCurrencyChange = async (event) => {
-        setCurrencyChange(event.target.value);
-        const newCurrency = event.target.value;
-        try {
-            const budgetLimit = await getBudgetLimitForCurrency(newCurrency);
-            const amount = await getAmountForCurrency(newCurrency);
-            dispatch({
-                type: 'SET_CURRENCY',
-                payload: {
-                    currency: newCurrency,
-                    budget_limit: budgetLimit,
-                    amount: amount,
-                },
-            });
-        } catch (error) {
-            console.log('Error while changing the currency:', error);
-        }
-    };
-
-    const getBudgetLimitForCurrency = async (currency) => {
-        try {
-            const response = await fetch(`API_URL/getBudgetLimit?currency=${currency}`);
-            const data = await response.json();
-            return data.budget_limit;
-        } catch (error) {
-            throw new Error('Error while retrieving the budget limit:', error);
-        }
-    };
-
-    const getAmountForCurrency = async (currency) => {
-        try {
-            const response = await fetch(`API_URL/getAmount?currency=${currency}`);
-            const data = await response.json();
-            return data.amount;
-        } catch (error) {
-            throw new Error('Error while retrieving the total income:', error);
-        }
-    };
 
     const handleGoalsClick = () => {
         setShowGoals(!showGoals); // Toggle the showGoals state on button click
@@ -221,7 +137,16 @@ const Dashboard = () => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {/* Render transactions here */}
+                                    {transactionData.map((transaction) => (
+                                        <TableRow key={transaction.id}>
+                                            <TableCell>{transaction.description}</TableCell>
+                                            <TableCell>{transaction.id}</TableCell>
+                                            <TableCell>{transaction.dateTime?.slice(0, 10)}</TableCell>
+                                            <TableCell>{transaction.money}</TableCell>
+                                            <TableCell>{transaction.category}</TableCell>
+                                            <TableCell>{transaction.typeTransaction}</TableCell>
+                                        </TableRow>
+                                    ))}
                                 </TableBody>
                             </Table>
                         )}

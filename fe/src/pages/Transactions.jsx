@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Button,
     Dialog,
@@ -13,24 +13,29 @@ import {
     TableCell,
     MenuItem,
     Select,
-    Box,
+    Box, InputLabel,
 } from '@mui/material';
+import {axiosApi} from "../api/axiosApi";
 
 const Transactions = () => {
+    const [transactionData, setTransactionData] = useState([]);
+    const [newTransaction, setNewTransaction] = useState({});
+    useEffect(() => {
+        (async () => {
+            const res = await axiosApi.getAllTrans();
+            const resCat = await axiosApi.getAllCategories();
+            const array = resCat.data.map(obj => obj.name);
+            console.log(res.data);
+            console.log(array);
+            setTransactionData([...res.data, newTransaction]);
+            setCategories([...array, newCategory]);
+        })();
+    }, []);
     const [open, setOpen] = useState(false);
     const [categoryOpen, setCategoryOpen] = useState(false);
-    const [transactionData, setTransactionData] = useState([]);
-    const [newTransaction, setNewTransaction] = useState({
-        id: '',
-        description: '',
-        date: '',
-        money: '',
-        category: '',
-        type: '',
-    });
     const [newCategory, setNewCategory] = useState('');
-    const [categories, setCategories] = useState(['Category 1', 'Category 2']);
-    const [transactionTypes] = useState(['Income', 'Expense']);
+    const [categories, setCategories] = useState([]);
+    const [transactionTypes] = useState(['INCOME', 'EXPENSE']);
     const [editMode, setEditMode] = useState(false);
     const [editTransactionId, setEditTransactionId] = useState(null);
 
@@ -43,7 +48,7 @@ const Transactions = () => {
             date: '',
             money: '',
             category: '',
-            type: '',
+            typeTransaction: '',
         });
     };
 
@@ -71,20 +76,35 @@ const Transactions = () => {
 
     const handleCreateTransaction = () => {
         if (editMode && editTransactionId !== null) {
-            const updatedData = transactionData.map((transaction) =>
-                transaction.id === editTransactionId ? newTransaction : transaction
+            const transaction = transactionData.find(
+                (transaction) => transaction.id === editTransactionId
             );
-            setTransactionData(updatedData);
+            const trans = {
+                description: newTransaction.description,
+                money: newTransaction.money,
+                typeTransaction: newTransaction.typeTransaction,
+            }
+            console.log(trans)
+            axiosApi.editTransaction(editTransactionId, trans);
             setEditMode(false);
             setEditTransactionId(null);
         } else {
-            setTransactionData([...transactionData, newTransaction]);
+            const trans = {
+                description: newTransaction.description,
+                money: newTransaction.money,
+                typeTransaction: newTransaction.typeTransaction,
+                category: {
+                    name: newTransaction.category
+                }
+            }
+            console.log(trans);
+            axiosApi.addTrans(trans);
         }
         setNewTransaction({
             description: '',
             money: '',
             category: '',
-            type: '',
+            typeTransaction: '',
         });
         setOpen(false);
     };
@@ -102,14 +122,15 @@ const Transactions = () => {
     };
 
     const handleDeleteTransaction = (transactionId) => {
-        const updatedData = transactionData.filter(
-            (transaction) => transaction.id !== transactionId
-        );
-        setTransactionData(updatedData);
+        axiosApi.deleteTransaction(transactionId);
     };
 
     const handleCreateCategory = () => {
-        setCategories([...categories, newCategory]);
+        const category = {
+            name: newCategory
+        }
+        console.log(category);
+        axiosApi.addCategory(category);
         setNewCategory('');
         setCategoryOpen(false);
     };
@@ -117,7 +138,7 @@ const Transactions = () => {
     const handleTypeChange = (event) => {
         setNewTransaction({
             ...newTransaction,
-            type: event.target.value,
+            typeTransaction: event.target.value,
         });
     };
 
@@ -168,7 +189,7 @@ const Transactions = () => {
                         <Select
                             name="type"
                             label="Type"
-                            value={newTransaction.type}
+                            value={newTransaction.typeTransaction}
                             onChange={handleTypeChange}
                             fullWidth
                         >
@@ -222,10 +243,10 @@ const Transactions = () => {
                         <TableRow key={transaction.id}>
                             <TableCell>{transaction.description}</TableCell>
                             <TableCell>{transaction.id}</TableCell>
-                            <TableCell>{transaction.date}</TableCell>
+                            <TableCell>{transaction.dateTime?.slice(0, 10)}</TableCell>
                             <TableCell>{transaction.money}</TableCell>
                             <TableCell>{transaction.category}</TableCell>
-                            <TableCell>{transaction.type}</TableCell>
+                            <TableCell>{transaction.typeTransaction}</TableCell>
                             <TableCell>
                                 <Button
                                     variant="outlined"
