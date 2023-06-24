@@ -4,14 +4,23 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 public class WalletGoalResponseDTO {
-    private Map<String, BigDecimal> goal;
+    private String goal;
+    private BigDecimal moneyGoal;
 
-    public Map<String, BigDecimal> getGoal() {
+    public String getGoal() {
         return goal;
     }
 
-    public void setGoal(Map<String, BigDecimal> goal) {
+    public void setGoal(String goal) {
         this.goal = goal;
+    }
+
+    public BigDecimal getMoneyGoal() {
+        return moneyGoal;
+    }
+
+    public void setMoneyGoal(BigDecimal moneyGoal) {
+        this.moneyGoal = moneyGoal;
     }
 }
 

@@ -2,7 +2,6 @@ package cz.cvut.fel.nss.budgetmanager.BudgetManager.repository;
 
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.model.Wallet;
 import jakarta.persistence.TypedQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

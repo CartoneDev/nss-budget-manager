@@ -1,9 +1,12 @@
 package cz.cvut.fel.nss.budgetmanager.BudgetManager.rest;
 
+import cz.cvut.fel.nss.budgetmanager.BudgetManager.dto.TransactionResponseDTO;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.dto.WalletGoalResponseDTO;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.dto.WalletResponseDTO;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.exceptions.NotFoundException;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.model.Currency;
+import cz.cvut.fel.nss.budgetmanager.BudgetManager.model.Goal;
+import cz.cvut.fel.nss.budgetmanager.BudgetManager.model.Transaction;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.model.Wallet;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.security.util.SecurityUtils;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.service.WalletService;
@@ -15,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -71,29 +75,36 @@ public class WalletController {
     /**
      * Adds a goal to a wallet.
      *
-     * @param request The WalletGoalResponseDTO object containing the goal details.
-     * @return The ResponseEntity containing the updated WalletGoalResponseDTO object and the appropriate status.
+     * @param request The Goal object containing the goal details.
+     * @return The ResponseEntity containing the updated Goal object and the appropriate status.
      * @throws NotFoundException if the goal is null.
      */
     @PostMapping(value = "/goal", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ExceptionHandler({NotFoundException.class})
-    public ResponseEntity<WalletGoalResponseDTO> addGoal(@RequestBody WalletGoalResponseDTO request) {
+    public ResponseEntity<WalletGoalResponseDTO> addGoal(@RequestBody Goal request) {
         Wallet wallet = SecurityUtils.getCurrentUser().getWallet();
-        Map<String, BigDecimal> goal = request.getGoal();
-        if (goal != null && !goal.isEmpty()) {
-            Map.Entry<String, BigDecimal> entry = goal.entrySet().iterator().next();
-            String goalKey = entry.getKey();
-            BigDecimal moneyForGoal = entry.getValue();
-            walletService.addGoal(goalKey, moneyForGoal, wallet.getWalletId());
+        if (request == null){
+            throw new NotFoundException("Goal must be not null!");
         }
-        if (goal == null){
-            throw new NotFoundException("Goal must not be null!");
-        }
+        walletService.addGoal(request.getGoal(), request.getMoneyGoal(), wallet.getWalletId());
         walletService.updateWallet(wallet);
-
         ModelMapper modelMapper = new ModelMapper();
-        WalletGoalResponseDTO walletGoalResponseDTO = modelMapper.map(wallet, WalletGoalResponseDTO.class);
+        WalletGoalResponseDTO walletGoalResponseDTO = modelMapper.map(request, WalletGoalResponseDTO.class);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(walletGoalResponseDTO);
+    }
+
+    /**
+     * Get all user's wallet's goals;
+     *
+     * @return all goals of user's wallet.
+     */
+
+    @GetMapping(value = "/allGoals")
+    public List<WalletGoalResponseDTO> getAllGoals(){
+        Wallet wallet = SecurityUtils.getCurrentUser().getWallet();
+        List<Goal> list = walletService.getAllGoals(wallet.getWalletId());
+        ModelMapper modelMapper = new ModelMapper();
+        return list.stream().map(goal -> modelMapper.map(goal, WalletGoalResponseDTO.class)).toList();
     }
 
     /**

@@ -2,6 +2,7 @@ package cz.cvut.fel.nss.budgetmanager.BudgetManager.service;
 
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.model.*;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.model.notification.NotificationType;
+import cz.cvut.fel.nss.budgetmanager.BudgetManager.repository.GoalDao;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.repository.TransactionDao;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.repository.WalletDao;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.service.kafka.NotificationProducer;
@@ -10,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,26 +28,28 @@ public class WalletService {
 
     private final WalletDao walletDao;
     private final TransactionDao transactionDao;
+    private final GoalDao goalDao;
 
     private final NotificationProducer notificationProducer;
 
     /**
      * Constructs a new WalletService with the given dependencies.
-     *
-     * @param walletDao             The WalletDao to interact with wallet data.
+     *  @param walletDao             The WalletDao to interact with wallet data.
      * @param transactionDao        The TransactionDao to interact with transaction data.
      * @param notificationService   The NotificationService for managing notifications.
      * @param notificationProducer  The NotificationProducer for sending email notifications.
      * @param transactionService    The TransactionService for transaction-related operations.
+     * @param goalDao               The GoalDao to interact with goal data.
      */
     @Autowired
     public WalletService(WalletDao walletDao, TransactionDao transactionDao,
-                         NotificationService notificationService, NotificationProducer notificationProducer, TransactionService transactionService) {
+                         NotificationService notificationService, NotificationProducer notificationProducer, TransactionService transactionService, GoalDao goalDao) {
         this.walletDao = walletDao;
         this.transactionDao = transactionDao;
         this.notificationService = notificationService;
         this.notificationProducer = notificationProducer;
         this.transactionService = transactionService;
+        this.goalDao = goalDao;
     }
 
     /**
@@ -198,14 +200,25 @@ public class WalletService {
      * @param money    The amount of money for the goal.
      * @param walletId The ID of the wallet.
      */
-    public void addGoal(String goal, BigDecimal money, Long walletId){
+    public void addGoal(String goal, BigDecimal money, Long walletId) {
         Wallet wallet = getWalletById(walletId);
-        Map<String, BigDecimal> currentBudgetGoals = wallet.getBudgetGoal();
-        if (!currentBudgetGoals.containsKey(goal)) {
-            currentBudgetGoals.put(goal, money);
-            wallet.setBudgetGoal(goal, money);
-        }
+        Goal newGoal = new Goal();
+        newGoal.setGoal(goal);
+        newGoal.setMoneyGoal(money);
+        wallet.addGoal(newGoal);
     }
+
+    /**
+     * Gets all goals for user's wallet.
+     *
+     * @param walletId The id of user's wallet.
+     * @return all user's wallet goals.
+     */
+    public List<Goal> getAllGoals(Long walletId){
+        Wallet wallet = getWalletById(walletId);
+        return goalDao.getAllGoals(wallet.getWalletId());
+    }
+
 
     /**
      * Changes the currency of the specified wallet.
@@ -260,6 +273,4 @@ public class WalletService {
             }
         }
     }
-
-
 }
