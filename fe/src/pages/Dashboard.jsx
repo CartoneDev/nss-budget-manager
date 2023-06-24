@@ -31,7 +31,11 @@ const Dashboard = () => {
             console.log(resWallet.data)
             setState(resWallet.data);
             setTransactionData([...res.data, newTransaction]);
-            setIsInitialLoad(false)
+            const resGoals = await axiosApi.getAllGoals();
+            console.log(resGoals.data);
+            setShowGoals(resGoals.data);
+
+            setIsInitialLoad(false);
         })();
     }, []);
 

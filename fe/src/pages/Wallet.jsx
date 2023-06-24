@@ -17,7 +17,7 @@ import { createTheme, ThemeProvider } from "@mui/material";
 import Slide from '@mui/material/Slide';
 import './styles/Wallet.css';
 import {axiosApi} from "../api/axiosApi";
-import {get} from "axios";
+import axios, {get} from "axios";
 
 const theme = createTheme();
 
@@ -69,22 +69,28 @@ const Wallet = () => {
         setIsDialogOpen(true);
     };
 
-    const handleAddGoal = () => {
-        // const newGoal = {
-        //     name: goalName,
-        //     amount: goalAmount
-        // };
+    const handleAddGoal = async () => {
         const newGoal = {
-            "goal": {
-                "goalName": goalAmount
-            }
+            goalName: goalName,
+            goalAmount: parseFloat(goalAmount),
+        };
+
+        try {
+            const response = await axios.post('/goal', newGoal);
+            console.log('Goal added:', response.data);
+            // Handle the response as needed
+            // For example, you can display a success message or update the state
+            // You can also perform additional actions based on the response data
+        } catch (error) {
+            console.error('Error adding goal:', error);
+            // Handle the error, such as displaying an error message or taking appropriate actions
         }
-        console.log(newGoal);
-        // setGoals([...goals, newGoal]);
+
         setGoalName('');
         setGoalAmount('');
         setIsDialogOpen(false);
     };
+
 
     const handleRemoveGoal = (index) => {
         const updatedGoals = [...goals];
