@@ -3,13 +3,11 @@ package cz.cvut.fel.nss.budgetmanager.Dispatcher.rest;
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.dto.TransactionResponseDTO;
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.model.Category;
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.model.Transaction;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -29,11 +27,14 @@ public class TransactionController {
 
     private final RestTemplate restTemplate;
     private final String serverUrl;
+    private final HttpServletRequest requestFromClient;
 
     @Autowired
-    public TransactionController(RestTemplate restTemplate, @Value("${server1.url}") String serverUrl) {
+    public TransactionController(RestTemplate restTemplate, @Value("${server1.url}") String serverUrl,
+                                 HttpServletRequest requestFromClient) {
         this.restTemplate = restTemplate;
-        this.serverUrl = serverUrl;
+        this.serverUrl = serverUrl + "transaction";
+        this.requestFromClient = requestFromClient;
     }
 
     /**
@@ -43,7 +44,13 @@ public class TransactionController {
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<TransactionResponseDTO> getAllTransactions() {
-        ResponseEntity<TransactionResponseDTO[]> response = restTemplate.getForEntity(serverUrl, TransactionResponseDTO[].class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Transaction> request = new HttpEntity<>(headers);
+
+        ResponseEntity<TransactionResponseDTO[]> response = restTemplate.exchange(serverUrl, HttpMethod.GET,
+                request,
+                TransactionResponseDTO[].class);
         return Arrays.asList(Objects.requireNonNull(response.getBody()));
     }
 
@@ -55,8 +62,12 @@ public class TransactionController {
      */
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TransactionResponseDTO> getTransactionById(@PathVariable Long id) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Transaction> request = new HttpEntity<>(headers);
+
         String url = serverUrl + "/" + id;
-        return restTemplate.getForEntity(url, TransactionResponseDTO.class);
+        return restTemplate.exchange(url, HttpMethod.GET, request, TransactionResponseDTO.class);
     }
 
     /**
@@ -67,7 +78,9 @@ public class TransactionController {
      */
     @PostMapping(value = "/new", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TransactionResponseDTO> createTransaction(@RequestBody Transaction transaction) {
-        HttpEntity<Transaction> request = new HttpEntity<>(transaction);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Transaction> request = new HttpEntity<>(transaction, headers);
         return restTemplate.exchange(serverUrl + "/new", HttpMethod.POST, request, TransactionResponseDTO.class);
     }
 
@@ -79,8 +92,11 @@ public class TransactionController {
      * @return The ResponseEntity containing the updated TransactionResponseDTO object and the appropriate status.
      */
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TransactionResponseDTO> updateTransaction(@PathVariable Long id, @RequestBody Transaction updatedTransaction) {
-        HttpEntity<Transaction> request = new HttpEntity<>(updatedTransaction);
+    public ResponseEntity<TransactionResponseDTO> updateTransaction(@PathVariable Long id,
+                                                                    @RequestBody Transaction updatedTransaction) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Transaction> request = new HttpEntity<>(updatedTransaction, headers);
         return restTemplate.exchange(serverUrl + "/" + id, HttpMethod.PUT, request, TransactionResponseDTO.class);
     }
 
@@ -92,7 +108,11 @@ public class TransactionController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
-        restTemplate.delete(serverUrl + "/" + id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Transaction> request = new HttpEntity<>(headers);
+
+        restTemplate.exchange(serverUrl + "/" + id, HttpMethod.DELETE, request, Transaction.class);
         return ResponseEntity.noContent().build();
     }
 
@@ -117,8 +137,12 @@ public class TransactionController {
                 .queryParam("description", description)
                 .queryParam("amount", amount);
         String url = builder.toUriString();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Transaction> request = new HttpEntity<>(headers);
 
-        ResponseEntity<TransactionResponseDTO[]> response = restTemplate.getForEntity(url, TransactionResponseDTO[].class);
+        ResponseEntity<TransactionResponseDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, request,
+                TransactionResponseDTO[].class);
 
         return Arrays.asList(Objects.requireNonNull(response.getBody()));
     }
@@ -130,7 +154,10 @@ public class TransactionController {
      */
     @GetMapping("/export")
     public ResponseEntity<Resource> exportTransaction() {
-        return restTemplate.exchange(serverUrl + "/export", HttpMethod.GET, null, Resource.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Resource> request = new HttpEntity<>(headers);
+        return restTemplate.exchange(serverUrl + "/export", HttpMethod.GET, request, Resource.class);
     }
 
     /**
@@ -141,7 +168,13 @@ public class TransactionController {
      */
     @GetMapping(value = "/findByDescription/{description}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Transaction> findByDescription(@PathVariable String description) {
-        ResponseEntity<Transaction[]> response = restTemplate.getForEntity(serverUrl + "/findByDescription/" + description, Transaction[].class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Transaction[]> request = new HttpEntity<>(headers);
+
+        ResponseEntity<Transaction[]> response =
+                restTemplate.exchange(serverUrl + "/findByDescription/" + description, HttpMethod.GET,
+                        request, Transaction[].class);
         return Arrays.asList(Objects.requireNonNull(response.getBody()));
     }
 }

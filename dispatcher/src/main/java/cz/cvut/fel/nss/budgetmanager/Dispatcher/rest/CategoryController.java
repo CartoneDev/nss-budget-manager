@@ -1,10 +1,12 @@
 package cz.cvut.fel.nss.budgetmanager.Dispatcher.rest;
 
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.model.Category;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,7 @@ public class CategoryController {
 
     private final RestTemplate restTemplate;
     private final String serverUrl;
+    private final HttpServletRequest requestFromClient;
 
     /**
      * Creates a CategoryController with a RestTemplate and server URL.
@@ -26,9 +29,11 @@ public class CategoryController {
      * @param serverUrl     The URL of the server.
      */
     @Autowired
-    public CategoryController(RestTemplate restTemplate, @Value("${server2.url}") String serverUrl) {
+    public CategoryController(RestTemplate restTemplate, @Value("${server2.url}") String serverUrl,
+                              HttpServletRequest requestFromClient) {
         this.restTemplate = restTemplate;
-        this.serverUrl = serverUrl;
+        this.serverUrl = serverUrl + "categories";
+        this.requestFromClient = requestFromClient;
     }
 
     /**
@@ -39,7 +44,9 @@ public class CategoryController {
      */
     @PostMapping
     public ResponseEntity<Category> createCategory(@RequestBody Category category) {
-        HttpEntity<Category> request = new HttpEntity<>(category);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Category> request = new HttpEntity<>(category, headers);
         return restTemplate.exchange(serverUrl, HttpMethod.POST, request, Category.class);
     }
 
@@ -53,7 +60,9 @@ public class CategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category updatedCategory) {
         String url = serverUrl + "/{id}";
-        HttpEntity<Category> requestEntity = new HttpEntity<>(updatedCategory);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Category> requestEntity = new HttpEntity<>(updatedCategory, headers);
 
         return restTemplate.exchange(url,
                 HttpMethod.PUT,
@@ -71,9 +80,13 @@ public class CategoryController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         String url = serverUrl + "/{id}";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<Category> requestEntity = new HttpEntity<>(headers);
+
         return restTemplate.exchange(url,
                 HttpMethod.DELETE,
-                null,
+                requestEntity,
                 Void.class,
                 id);
     }
@@ -87,11 +100,12 @@ public class CategoryController {
     @GetMapping("/{id}")
     public ResponseEntity<Category> getCategory(@PathVariable Long id) {
         String url = serverUrl +"/{id}";
-        ResponseEntity<Category> response = restTemplate.getForEntity(url,
-                Category.class,
-                id);
-        System.out.println(response);
-        return response;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange(url,
+                HttpMethod.GET, entity, Category.class, id);
     }
 
     /**
@@ -101,10 +115,13 @@ public class CategoryController {
      */
     @GetMapping
     public ResponseEntity<List<Category>> getAllCategories() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<String> entity = new HttpEntity<>(headers);
         return restTemplate.exchange(
                 serverUrl,
                 HttpMethod.GET,
-                null,
+                entity,
                 new ParameterizedTypeReference<>() {
                 });
     }

@@ -1,9 +1,11 @@
 package cz.cvut.fel.nss.budgetmanager.Dispatcher.rest;
 
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.dto.UserDTO;
+import cz.cvut.fel.nss.budgetmanager.Dispatcher.model.Category;
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.model.User;
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.security.model.AuthenticationRequest;
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.security.model.AuthenticationResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -15,17 +17,21 @@ import org.springframework.web.client.RestTemplate;
 public class UserController {
     private final RestTemplate restTemplate;
     private final String serverUrl;
+    private final HttpServletRequest requestFromClient;
 
     /**
      * Creates a UserController with a RestTemplate and server URL.
      *
-     * @param restTemplate The RestTemplate for making HTTP requests.
-     * @param serverUrl     The URL of the server.
+     * @param restTemplate      The RestTemplate for making HTTP requests.
+     * @param serverUrl         The URL of the server.
+     * @param requestFromClient
      */
     @Autowired
-    public UserController(RestTemplate restTemplate, @Value("${server1.url}") String serverUrl) {
+    public UserController(RestTemplate restTemplate, @Value("${server1.url}") String serverUrl,
+                          HttpServletRequest requestFromClient) {
         this.restTemplate = restTemplate;
-        this.serverUrl = serverUrl;
+        this.serverUrl = serverUrl + "user";
+        this.requestFromClient = requestFromClient;
     }
 
     /**
@@ -52,7 +58,11 @@ public class UserController {
      */
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public User getUser(@PathVariable Long id) {
-        ResponseEntity<User> response = restTemplate.getForEntity(serverUrl + "/" + id, User.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", this.requestFromClient.getHeader("Authorization"));
+        HttpEntity<User> request = new HttpEntity<>(headers);
+        ResponseEntity<User> response = restTemplate.exchange(serverUrl + "/" + id, HttpMethod.GET, request,
+                User.class);
         return response.getBody();
     }
 

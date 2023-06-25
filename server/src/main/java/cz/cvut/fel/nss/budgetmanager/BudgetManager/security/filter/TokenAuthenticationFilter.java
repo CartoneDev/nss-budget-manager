@@ -10,16 +10,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Component
 @RequiredArgsConstructor
@@ -41,7 +35,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        System.out.println(request.getServletPath());
         if (request.getServletPath().contains("/rest/user/authenticate")
                 || request.getServletPath().contains("/rest/user/register")) {
             filterChain.doFilter(request, response);
@@ -49,13 +42,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = request.getHeader("Authorization");
+        System.out.println("Token: " + token);
+        if (!token.isEmpty() && tokenValidatorService.validateToken(token)) {
+            final BudgetUserDetails budgetUserDetails = (BudgetUserDetails) budgetUserDetailsService.loadUserByUsername(token);
 
-        String hash = token;
-
-        if (!hash.isEmpty() && tokenValidatorService.validateToken(hash)) {
-            final BudgetUserDetails budgetUserDetails = (BudgetUserDetails) budgetUserDetailsService.loadUserByUsername(hash);
-
-            authenticationService.authenticate(hash);
+            authenticationService.authenticate(token);
             SecurityUtils.setCurrentUser(budgetUserDetails);
             filterChain.doFilter(request, response);
 

@@ -44,6 +44,16 @@ CREATE TABLE Goals (
                        FOREIGN KEY (wallet_id) REFERENCES Wallet (wallet_id)
 );
 
+CREATE TABLE auth_tokens
+(
+    id              serial
+        primary key,
+    token           varchar(255) not null,
+    user_id         bigint       not null,
+    creation_date   timestamp    not null,
+    expiration_date timestamp    not null
+);
+
 create table public.auth_tokens
 (
     id              serial

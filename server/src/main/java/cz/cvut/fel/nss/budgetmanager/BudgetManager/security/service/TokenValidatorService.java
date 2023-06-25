@@ -1,14 +1,16 @@
 package cz.cvut.fel.nss.budgetmanager.BudgetManager.security.service;
 
+import cz.cvut.fel.nss.budgetmanager.BudgetManager.model.User;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.repository.UserDao;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.repository.security.AuthTokenDao;
 import cz.cvut.fel.nss.budgetmanager.BudgetManager.security.token.AuthToken;
 import lombok.AllArgsConstructor;
-import org.springframework.cglib.core.Local;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class TokenValidatorService {
@@ -23,8 +25,14 @@ public class TokenValidatorService {
      * @return true if the token is valid, false otherwise.
      */
     public boolean validateToken(String hash) {
-        AuthToken authToken = authTokenDao.findActiveUserToken(
-                userDao.findByEmail(hash).getClientId()).get(0);
+        User user = userDao.findByEmail(hash);
+
+        if (user == null) {
+            log.info(String.format("User is null. User with email does not exist: %s", hash));
+            return false;
+        }
+
+        AuthToken authToken = authTokenDao.findActiveUserToken(user.getClientId()).get(0);
 
         LocalDateTime currentDate = LocalDateTime.now();
         LocalDateTime expirationDate = authToken.getExpirationDate();
@@ -36,18 +44,4 @@ public class TokenValidatorService {
         String hashFromDb = authToken.getToken();
         return hash.equals(hashFromDb);
     }
-
-    /**
-     * Generates a hash for a token based on the email and expiration date.
-     *
-     * @param email           The email associated with the token.
-     * @param expirationDate  The expiration date of the token.
-     * @return The generated hash.
-     */
-    public static String generateHash(String email, LocalDateTime expirationDate) {
-        String tokenData = email + "|" + expirationDate.toString();
-        int hash = tokenData.concat(SECRET_KEY).length();
-        return String.valueOf(hash);
-    }
-
 }
