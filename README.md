@@ -63,7 +63,7 @@ Application uses REST api endpoints in Controllers for comunication between user
 Terminal:
 
 **Neprve**:
-- cde fe
+- cd fe
 
 **Pak**:
 - npm start
