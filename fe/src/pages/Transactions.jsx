@@ -16,6 +16,7 @@ import {
     Box, InputLabel,
 } from '@mui/material';
 import {axiosApi} from "../api/axiosApi";
+import {Description} from "@mui/icons-material";
 
 const Transactions = () => {
     const [transactionData, setTransactionData] = useState([]);
@@ -226,9 +227,9 @@ const Transactions = () => {
                 </DialogActions>
             </Dialog>
 
-            <Table>
-                <TableHead>
-                    <TableRow>
+            <Table key={11233214142}>
+                <TableHead key={88004442323}>
+                    <TableRow key={88005562626}>
                         <TableCell>Description</TableCell>
                         <TableCell>ID</TableCell>
                         <TableCell>Date</TableCell>
@@ -240,8 +241,8 @@ const Transactions = () => {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {transactionData.map((transaction) => (
-                        <TableRow key={transaction.id}>
+                    {transactionData.map((transaction, i) => (
+                        <TableRow key={transaction.id + i}>
                             <TableCell>{transaction.description}</TableCell>
                             <TableCell>{transaction.id}</TableCell>
                             <TableCell>{transaction.dateTime?.slice(0, 10)}</TableCell>
@@ -256,7 +257,7 @@ const Transactions = () => {
                                     Edit
                                 </Button>
                             </TableCell>
-                            <TableCell>
+                            <TableCell key={"Delete"}>
                                 <Button
                                     variant="outlined"
                                     onClick={() => handleDeleteTransaction(transaction.id)}

@@ -138,7 +138,6 @@ const Wallet = () => {
                                             control={<Radio />}
                                             value="CZK"
                                             name="CZK"
-                                            inputProps={{ 'aria-label': 'CZK' }}
                                             color="secondary"
                                             label="CZK"
                                             labelPlacement="top"
@@ -152,7 +151,6 @@ const Wallet = () => {
                                             control={<Radio />}
                                             value="EUR"
                                             name="EUR"
-                                            inputProps={{ 'aria-label': 'EUR' }}
                                             color="secondary"
                                             label="EUR"
                                             labelPlacement="top"
@@ -166,7 +164,6 @@ const Wallet = () => {
                                             control={<Radio />}
                                             value="USD"
                                             name="USD"
-                                            inputProps={{ 'aria-label': 'USD' }}
                                             color="secondary"
                                             label="USD"
                                             labelPlacement="top"
@@ -240,14 +237,14 @@ const Wallet = () => {
 
                                 <Table>
                                     <TableHead>
-                                        <TableRow>
+                                        <TableRow key={88005553535}>
                                             <TableCell sx={{fontWeight: 'bolder'}}>Name</TableCell>
                                             <TableCell sx={{fontWeight: 'bolder'}}>Goal</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {goals.map((g) => (
-                                            <TableRow>
+                                        {goals.map((g, i) => (
+                                            <TableRow key={i}>
                                                 <TableCell>{g.goal}</TableCell>
                                                 <TableCell>{g.moneyGoal}</TableCell>
                                             </TableRow>
