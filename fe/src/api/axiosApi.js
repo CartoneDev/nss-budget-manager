@@ -1,5 +1,4 @@
 import axios from 'axios';
-import {config} from "../Constants";
 
 export const axiosApi = {
     signup,
@@ -11,7 +10,9 @@ export const axiosApi = {
     addCategory,
     getAllCategories,
     editTransaction,
-    deleteTransaction
+    deleteTransaction,
+    getAllGoals,
+    addGoal
 }
 
 const instance = axios.create({
@@ -88,5 +89,20 @@ function editTransaction(id, transaction) {
 function deleteTransaction(id) {
     return instance.delete('/transaction/' + id, {
         headers: {'Authorization': 'yes@yes.y'}
+    })
+}
+
+function getAllGoals() {
+    return instance.get('/wallet/allGoals', {
+        headers: {'Authorization': 'yes@yes.y'}
+    })
+}
+
+function addGoal(goal) {
+    return instance.post('/wallet/goal', goal, {
+        headers: {
+            'Authorization': 'yes@yes.y',
+            'Content-type': 'application/json'
+        }
     })
 }

@@ -17,7 +17,9 @@ const theme = createTheme();
 const Dashboard = () => {
     const [state, setState] = useState({});
     const [transactionData, setTransactionData] = useState([]);
+    const [goalsData, setGoalsData] = useState([]);
     const [newTransaction, setNewTransaction] = useState({});
+    const [newGoal, setNewGoal] = useState({});
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [currencyChange, setCurrencyChange] = useState('CZK');
     const [showGoals, setShowGoals] = useState(false); // New state variable for showing goals
@@ -32,8 +34,9 @@ const Dashboard = () => {
             setState(resWallet.data);
             setTransactionData([...res.data, newTransaction]);
             const resGoals = await axiosApi.getAllGoals();
+            setGoalsData([...resGoals.data, newGoal]);
             console.log(resGoals.data);
-            setShowGoals(resGoals.data);
+            console.log(goalsData);
 
             setIsInitialLoad(false);
         })();
@@ -81,7 +84,7 @@ const Dashboard = () => {
                                     <strong>Wallet name:</strong> {state.name}
                                 </Typography>
                                 <Typography component="p">
-                                    <strong>Budget Limit:</strong> {state.budget_limit} {state.currency}
+                                    <strong>Budget Limit:</strong> {state.budgetLimit} {state.currency}
                                 </Typography>
                                 <Typography component="p">
                                     <strong>Amount:</strong> {state.amount} {state.currency}
@@ -108,8 +111,22 @@ const Dashboard = () => {
                         </Button>
                         {showGoals && (
                             <Typography component="p" sx={{ marginTop: '8px' }}>
-                                <strong>Goal Name:</strong> {state.NameGoal}
-                                <strong>Goal Amount:</strong> {state.amountGoal}
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell sx={{fontWeight: 'bolder'}}>Name</TableCell>
+                                            <TableCell sx={{fontWeight: 'bolder'}}>Goal</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {goalsData.map((g) => (
+                                            <TableRow>
+                                                <TableCell>{g.goal}</TableCell>
+                                                <TableCell>{g.moneyGoal}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
                             </Typography>
                         )}
                     </Box>

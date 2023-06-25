@@ -17,7 +17,11 @@ import { createTheme, ThemeProvider } from "@mui/material";
 import Slide from '@mui/material/Slide';
 import './styles/Wallet.css';
 import {axiosApi} from "../api/axiosApi";
-import axios, {get} from "axios";
+import Table from "@mui/material/Table";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import TableBody from "@mui/material/TableBody";
 
 const theme = createTheme();
 
@@ -26,8 +30,11 @@ const Wallet = () => {
     useEffect(() => {
         (async () => {
             const response = await axiosApi.wallet();
+            const resGoal = await axiosApi.getAllGoals();
+            console.log(resGoal.data);
             console.log(response.data);
             setState(response.data);
+            setGoals([...resGoal.data, newGoal]);
         })();
     }, []);
 
@@ -35,6 +42,7 @@ const Wallet = () => {
     const [currencyChange, setCurrencyChange] = useState('CZK');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [goals, setGoals] = useState([]);
+    const [newGoal, setNewGoal] = useState({});
     const [goalName, setGoalName] = useState('');
     const [goalAmount, setGoalAmount] = useState('');
     const [addedAmount, setAddedAmount] = useState('');
@@ -49,7 +57,7 @@ const Wallet = () => {
             axiosApi.addMoney(amountToAdd);
         }
         setAddedAmount('');
-        window.location.reload();
+        // window.location.reload();
     };
 
     const handleExport = () => {
@@ -71,31 +79,15 @@ const Wallet = () => {
 
     const handleAddGoal = async () => {
         const newGoal = {
-            goalName: goalName,
-            goalAmount: parseFloat(goalAmount),
+            goal: goalName,
+            moneyGoal: parseFloat(goalAmount),
         };
 
-        try {
-            const response = await axios.post('/goal', newGoal);
-            console.log('Goal added:', response.data);
-            // Handle the response as needed
-            // For example, you can display a success message or update the state
-            // You can also perform additional actions based on the response data
-        } catch (error) {
-            console.error('Error adding goal:', error);
-            // Handle the error, such as displaying an error message or taking appropriate actions
-        }
+        axiosApi.addGoal(newGoal);
 
         setGoalName('');
         setGoalAmount('');
         setIsDialogOpen(false);
-    };
-
-
-    const handleRemoveGoal = (index) => {
-        const updatedGoals = [...goals];
-        updatedGoals.splice(index, 1);
-        setGoals(updatedGoals);
     };
 
     return (
@@ -245,19 +237,24 @@ const Wallet = () => {
                                 <Button variant="contained" color="primary" onClick={handleOpenDialog}>
                                     Add goals
                                 </Button>
-                                { goals.map((goal, index) => (
-                                    <div key={index}>
-                                        <p>
-                                            <strong>Name:</strong> {goal.name}
-                                        </p>
-                                        <p>
-                                            <strong>Amount:</strong> {goal.amount}
-                                        </p>
-                                        <Button variant="contained" color="secondary" onClick={() => handleRemoveGoal(index)}>
-                                            Remove goals
-                                        </Button>
-                                    </div>
-                                ))}
+
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell sx={{fontWeight: 'bolder'}}>Name</TableCell>
+                                            <TableCell sx={{fontWeight: 'bolder'}}>Goal</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {goals.map((g) => (
+                                            <TableRow>
+                                                <TableCell>{g.goal}</TableCell>
+                                                <TableCell>{g.moneyGoal}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+
                                 <Dialog open={isDialogOpen} onClose={handleCloseDialogGoals}>
                                     <DialogTitle>Add goals</DialogTitle>
                                     <DialogContent>

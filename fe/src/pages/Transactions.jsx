@@ -107,6 +107,7 @@ const Transactions = () => {
             typeTransaction: '',
         });
         setOpen(false);
+        window.location.reload();
     };
 
     const handleEditTransaction = (transactionId) => {
