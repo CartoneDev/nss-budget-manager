@@ -1,7 +1,3 @@
-# Budget-Tracker
-
-
-
 # Language
 We used Java 17.
 # Technologies
@@ -37,7 +33,7 @@ Our frontend was developed on React.js.
 # Database
 ## Relational database
 We used PostgreSQL for Transactions, User, Category, Wallet
-## NonRelational database
+## NotRelational database
 We used MongoDB for Notifications.
 
 # Authorization
@@ -56,3 +52,15 @@ Application uses REST api endpoints in Controllers for comunication between user
 - **MVC**
 - **DAO**
 - **Proxy**(Dispatcher)
+# Init postup
+## Backend
+**Neprve**:
+- docker-compose up postgres mongo
+**Pak**:
+- docker-compose up dispatcher server server-2 zookeeper kafka
+## Frontend
+Terminal:
+**Neprve**:
+- cde fe
+**Pak**:
+- npm start
