@@ -28,6 +28,7 @@ import java.util.List;
  * REST controller for managing transactions.
  */
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("rest/transaction")
 public class TransactionController {
     private final TransactionService transactionService;

@@ -13,9 +13,8 @@ import java.math.BigDecimal;
 @Table(name = "goals")
 public class Goal implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "goals_seq_generator")
-    @SequenceGenerator(name = "goals_seq_generator", sequenceName = "goals_goal_id_seq", allocationSize = 1)
-    @Column(name = "goal_id")
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "goals_id")
     private Long goalId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -27,6 +26,14 @@ public class Goal implements Serializable {
 
     @Column
     private BigDecimal moneyGoal;
+
+    public Long getGoalId() {
+        return goalId;
+    }
+
+    public void setGoalId(Long goalId) {
+        this.goalId = goalId;
+    }
 
     public Wallet getWallet() {
         return wallet;

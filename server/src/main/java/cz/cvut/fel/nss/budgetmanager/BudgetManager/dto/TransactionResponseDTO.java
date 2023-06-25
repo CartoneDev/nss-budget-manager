@@ -8,12 +8,21 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class TransactionResponseDTO {
+    private Long id;
     private String description;
     private BigDecimal money;
     private TypeTransaction typeTransaction;
     private String category;
     private String wallet;
     private LocalDateTime dateTime;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getDescription() {
         return description;

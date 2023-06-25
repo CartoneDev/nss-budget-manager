@@ -4,8 +4,17 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 public class WalletGoalResponseDTO {
+    private Long goalId;
     private String goal;
     private BigDecimal moneyGoal;
+
+    public Long getGoalId() {
+        return goalId;
+    }
+
+    public void setGoalId(Long goalId) {
+        this.goalId = goalId;
+    }
 
     public String getGoal() {
         return goal;

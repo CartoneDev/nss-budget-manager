@@ -25,6 +25,7 @@ import java.util.Map;
  * REST controller for managing wallet-related operations.
  */
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("rest/wallet")
 public class WalletController {
     private final WalletService walletService;
