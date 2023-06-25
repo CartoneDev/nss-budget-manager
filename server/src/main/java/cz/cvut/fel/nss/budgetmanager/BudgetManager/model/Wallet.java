@@ -1,15 +1,12 @@
 package cz.cvut.fel.nss.budgetmanager.BudgetManager.model;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.Type;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -49,11 +46,8 @@ public class Wallet implements Serializable {
     @Column(nullable = false)
     private String name;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @MapKeyColumn(name = "goal")
-    @Column(name = "money_goal")
-    @CollectionTable(name = "goals", joinColumns = @JoinColumn(name = "wallet_id"))
-    private Map<String, BigDecimal> budgetGoal;
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Goal> goals = new ArrayList<>();
 
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "wallet")
@@ -75,6 +69,25 @@ public class Wallet implements Serializable {
             this.amount = amount;
         }
     }
+
+    public void addGoal(Goal goal) {
+        goals.add(goal);
+        goal.setWallet(this);
+    }
+
+    public void removeGoal(Goal goal) {
+        goals.remove(goal);
+        goal.setWallet(null);
+    }
+
+    public List<Goal> getGoals() {
+        return goals;
+    }
+
+    public void setGoals(List<Goal> goals) {
+        this.goals = goals;
+    }
+
 
     public Currency getCurrency() {
         return currency;
@@ -122,13 +135,5 @@ public class Wallet implements Serializable {
         Objects.requireNonNull(transaction);
         if (transactions == null) transactions = new ArrayList<>();
         transactions.add(transaction);
-    }
-
-    public Map<String, BigDecimal> getBudgetGoal() {
-        return budgetGoal;
-    }
-
-    public void setBudgetGoal(String key, BigDecimal money) {
-        this.budgetGoal.put(key, money);
     }
 }

@@ -37,8 +37,22 @@ CREATE TABLE Transactions (
 );
 
 CREATE TABLE Goals (
+                       goals_id SERIAL PRIMARY KEY ,
                        money_goal NUMERIC(19, 2) NOT NULL,
                        goal VARCHAR(255) NOT NULL,
                        wallet_id INTEGER NOT NULL ,
                        FOREIGN KEY (wallet_id) REFERENCES Wallet (wallet_id)
 );
+
+create table public.auth_tokens
+(
+    id              serial
+        primary key,
+    token           varchar(255) not null,
+    user_id         bigint       not null,
+    creation_date   timestamp    not null,
+    expiration_date timestamp    not null
+);
+
+alter table auth_tokens
+    owner to postgres;

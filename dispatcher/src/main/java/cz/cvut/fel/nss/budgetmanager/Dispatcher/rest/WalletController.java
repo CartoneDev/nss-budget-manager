@@ -1,8 +1,10 @@
 package cz.cvut.fel.nss.budgetmanager.Dispatcher.rest;
 
+import cz.cvut.fel.nss.budgetmanager.Dispatcher.dto.TransactionResponseDTO;
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.dto.WalletGoalResponseDTO;
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.dto.WalletResponseDTO;
 import cz.cvut.fel.nss.budgetmanager.Dispatcher.model.Currency;
+import cz.cvut.fel.nss.budgetmanager.Dispatcher.model.Goal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -10,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("rest/wallet")
@@ -52,6 +57,17 @@ public class WalletController {
     public ResponseEntity<WalletGoalResponseDTO> addGoal(@RequestBody WalletGoalResponseDTO walletGoalResponseDTO) {
         HttpEntity<WalletGoalResponseDTO> request = new HttpEntity<>(walletGoalResponseDTO);
         return restTemplate.exchange(serverUrl + "/goal", HttpMethod.POST, request, WalletGoalResponseDTO.class);
+    }
+
+    /**
+     * Get all user's wallet goals;
+     *
+     * @return The list of goals;
+     */
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<WalletGoalResponseDTO> getAllGoals() {
+        ResponseEntity<WalletGoalResponseDTO[]> response = restTemplate.getForEntity(serverUrl, WalletGoalResponseDTO[].class);
+        return Arrays.asList(Objects.requireNonNull(response.getBody()));
     }
 
     /**
