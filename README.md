@@ -56,11 +56,14 @@ Application uses REST api endpoints in Controllers for comunication between user
 ## Backend
 **Neprve**:
 - docker-compose up postgres mongo
+
 **Pak**:
 - docker-compose up dispatcher server server-2 zookeeper kafka
 ## Frontend
 Terminal:
+
 **Neprve**:
 - cde fe
+
 **Pak**:
 - npm start
